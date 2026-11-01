@@ -1,0 +1,110 @@
+﻿@model DashboardViewModel
+@{ ViewBag.Title = "Tổng quan"; }
+
+<section class="admin-welcome"><div><h2>Chào @User.GetFullName(), cùng bắt đầu ngày mới.</h2><p>Các yêu cầu mới, lịch sự kiện và tình hình đặt chỗ của bạn đều có tại đây.</p></div><i class="fas fa-leaf" aria-hidden="true"></i></section>
+
+<div class="row">
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-warning">
+            <div class="inner"><h3>@Model.Pending</h3><p>Yêu cầu chờ duyệt</p></div>
+            <div class="icon"><i class="fas fa-hourglass-half"></i></div>
+            <a href="@Url.Action("Index", "Bookings", new { status = "Pending" })" class="small-box-footer">Xử lý ngay <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-info">
+            <div class="inner"><h3>@Model.TotalBookings</h3><p>Tổng số đơn đặt chỗ</p></div>
+            <div class="icon"><i class="fas fa-calendar-alt"></i></div>
+            <a href="@Url.Action("Index", "Bookings")" class="small-box-footer">Xem chi tiết <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-success">
+            <div class="inner"><h3>@Model.AvailableVenues<sup style="font-size:20px"> / @Model.TotalVenues</sup></h3><p>Địa điểm đang hoạt động</p></div>
+            <div class="icon"><i class="fas fa-building"></i></div>
+            <a href="@Url.Action("Index", "Venues")" class="small-box-footer">Quản lý địa điểm <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-primary">
+            <div class="inner"><h3 style="font-size:1.6rem">@Vi.Money(Model.Revenue)</h3><p>Giá trị đơn đã xác nhận + hoàn thành (không phải tiền đã thu)</p></div>
+            <div class="icon"><i class="fas fa-coins"></i></div>
+            <span class="small-box-footer">&nbsp;</span>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Đơn đặt chỗ theo trạng thái</h3></div>
+            <div class="card-body p-0">
+                <ul class="nav nav-pills flex-column">
+                    <li class="nav-item"><span class="nav-link">Chờ duyệt yêu cầu <span class="badge badge-warning float-right">@Model.Pending</span></span></li>
+                    <li class="nav-item"><a class="nav-link" href="@Url.Action("Index", "Bookings", new { status = "AwaitingDeposit" })">Đã duyệt - Chờ cọc <span class="badge badge-info float-right">@Model.AwaitingDeposit</span></a></li>
+                    <li class="nav-item"><span class="nav-link">Đặt thành công <span class="badge badge-success float-right">@Model.Confirmed</span></span></li>
+                    <li class="nav-item"><span class="nav-link">Đã hoàn thành <span class="badge badge-primary float-right">@Model.Completed</span></span></li>
+                    <li class="nav-item"><span class="nav-link">Đã hủy <span class="badge badge-danger float-right">@Model.Cancelled</span></span></li>
+                    <li class="nav-item border-top"><span class="nav-link">Khách hàng đã đăng ký <span class="badge badge-secondary float-right">@Model.TotalClients</span></span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Sự kiện sắp diễn ra</h3></div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-hover text-nowrap">
+                    <thead><tr><th>Mã</th><th>Địa điểm</th><th>Khách hàng</th><th>Ngày &amp; giờ</th><th>Trạng thái</th></tr></thead>
+                    <tbody>
+                    @if (!Model.UpcomingBookings.Any())
+                    {
+                        <tr><td colspan="5" class="text-center text-muted py-4">Chưa có sự kiện nào sắp diễn ra.</td></tr>
+                    }
+                    @foreach (var b in Model.UpcomingBookings)
+                    {
+                        <tr>
+                            <td><a href="@Url.Action("Details", "Bookings", new { id = b.Id })">#@b.Id</a></td>
+                            <td>@b.Venue.Name</td>
+                            <td>@b.User.FullName</td>
+                            <td>@Vi.Date(b.EventDate), @Vi.TimeRange(b.StartTime, b.EndTime)</td>
+                            <td><span class="badge badge-@Vi.BookingColor(b.Status)">@Vi.BookingStatusName(b.Status)</span></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Đơn đặt chỗ mới nhất</h3></div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-hover text-nowrap">
+                    <thead><tr><th>Mã</th><th>Địa điểm</th><th>Khách hàng</th><th>Ngày tạo</th><th>Trạng thái</th></tr></thead>
+                    <tbody>
+                    @if (!Model.RecentBookings.Any())
+                    {
+                        <tr><td colspan="5" class="text-center text-muted py-4">Chưa có đơn đặt chỗ nào.</td></tr>
+                    }
+                    @foreach (var b in Model.RecentBookings)
+                    {
+                        <tr>
+                            <td><a href="@Url.Action("Details", "Bookings", new { id = b.Id })">#@b.Id</a></td>
+                            <td>@b.Venue.Name</td>
+                            <td>@b.User.FullName</td>
+                            <td>@Vi.Date(b.CreatedAt)</td>
+                            <td><span class="badge badge-@Vi.BookingColor(b.Status)">@Vi.BookingStatusName(b.Status)</span></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (User.IsInRole(AppRoles.Admin))
+{
+    @Html.Partial("_DepositSettings", Model.DepositSettings)
+}

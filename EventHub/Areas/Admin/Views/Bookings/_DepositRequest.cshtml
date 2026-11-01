@@ -1,0 +1,25 @@
+@model DepositRequestViewModel
+<section class="card card-outline card-info mt-3"><div class="card-body">
+    <h2 class="h5">Duyệt yêu cầu và gửi QR cọc</h2>
+    <p>Chọn % cọc và ảnh QR để gửi cho khách. Khi nhận được cọc, bấm <strong>Xác nhận đã nhận cọc</strong>.</p>
+    @using (Html.BeginForm("SendDepositRequest", "Bookings", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="deposit-request-fields">
+        <input type="hidden" name="BookingId" value="@Model.BookingId" />
+        <div class="form-group"><label for="requestPercent">Tỷ lệ cọc cho đơn này (%)</label><input id="requestPercent" type="number" name="Percent" value="@Model.Percent.ToString(System.Globalization.CultureInfo.InvariantCulture)" min="1" max="100" step="0.01" class="form-control" required /></div>
+        <div class="form-group"><label for="requestQrFile">Thay QR trước khi gửi (chỉ áp dụng đơn này)</label><input id="requestQrFile" type="file" name="qrFile" accept="image/jpeg,image/png" class="form-control-file" /><small>JPEG/PNG, tối đa 3 MB. Không chọn ảnh mới để dùng QR đang hiển thị.</small></div>
+        @if (!string.IsNullOrEmpty(Model.QrImageUrl)) { <img id="requestQrPreview" src="@Url.Content(Model.QrImageUrl)" alt="QR sẽ gửi cho khách" class="mb-3" style="max-width:260px;width:100%;height:auto" /> }
+        else { <img id="requestQrPreview" alt="Xem trước QR" class="mb-3" style="display:none;max-width:260px;width:100%;height:auto" /> }
+        <p>Nội dung chuyển khoản: <strong>EVENTHUB @Model.BookingId</strong>.</p>
+        <button class="btn btn-info" type="submit">Duyệt / Gửi lại QR cọc qua email</button>
+        </div>
+    }
+</div></section>
+<script>
+document.getElementById('requestQrFile').addEventListener('change', function () {
+    if (!this.files.length) return;
+    if (this.files[0].size > 3 * 1024 * 1024) { alert('Ảnh tối đa 3 MB.'); this.value = ''; return; }
+    var reader = new FileReader(); reader.onload = function () { var image = document.getElementById('requestQrPreview'); image.src = reader.result; image.style.display = ''; }; reader.readAsDataURL(this.files[0]);
+});
+</script>

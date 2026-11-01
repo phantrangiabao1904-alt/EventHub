@@ -1,0 +1,107 @@
+﻿@{
+    var ctrl = ((string)ViewContext.RouteData.Values["controller"] ?? "").ToLower();
+    Func<string, string> act = c => ctrl == c ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewBag.Title - EventHub Admin</title>
+    <meta name="theme-color" content="#193e33" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/css/adminlte.min.css" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/admin.css?v=20261030")" />
+</head>
+<body class="hold-transition sidebar-mini layout-fixed admin-@ctrl">
+<div class="wrapper">
+
+    
+    <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+        <ul class="navbar-nav">
+            <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Thu gọn menu"><i class="fas fa-bars"></i></a></li>
+            <li class="nav-item d-none d-sm-inline-block"><a href="@Url.Action("Index", "Home", new { area = "" })" class="nav-link"><i class="fas fa-globe"></i> Xem trang khách hàng</a></li>
+        </ul>
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item"><a class="nav-link" href="@Url.Action("Profile", "Account", new { area = "" })">Hồ sơ cá nhân</a></li>
+            <li class="nav-item"><div class="admin-user"><span class="admin-avatar" aria-hidden="true"><i class="fas fa-user"></i></span><span class="admin-user-name">@User.GetFullName()<small>@(User.IsInRole(AppRoles.Admin) ? Vi.RoleName(Role.Admin) : Vi.RoleName(Role.Coordinator))</small></span></div></li>
+            <li class="nav-item">
+                @using (Html.BeginForm("Logout", "Account", new { area = "" }, FormMethod.Post, new { @class = "form-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-1"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button>
+                }
+            </li>
+        </ul>
+    </nav>
+
+    
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="@Url.Action("Index", "Dashboard", new { area = "Admin" })" class="brand-link">
+            <span class="brand-symbol" aria-hidden="true"><i class="fas fa-th-large"></i></span>
+            <span class="brand-text">EventHub.<small>Không gian quản trị</small></span>
+        </a>
+        <div class="sidebar">
+            <div class="sidebar-section-label">Không gian làm việc</div>
+            <nav class="mt-2">
+                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                    <li class="nav-item"><a href="@Url.Action("Index", "Dashboard", new { area = "Admin" })" class="nav-link @act("dashboard")"><i class="nav-icon fas fa-tachometer-alt"></i><p>Tổng quan</p></a></li>
+                    <li class="nav-item"><a href="@Url.Action("Index", "Reports", new { area = "Admin" })" class="nav-link @act("reports")"><i class="nav-icon fas fa-chart-bar"></i><p>Báo cáo tháng</p></a></li>
+                    <li class="nav-item"><a href="@Url.Action("Index", "Services", new { area = "Admin" })" class="nav-link @act("services")"><i class="nav-icon fas fa-concierge-bell"></i><p>Dịch vụ đi kèm</p></a></li>
+                    <li class="nav-item"><a href="@Url.Action("Index", "Bookings", new { area = "Admin" })" class="nav-link @act("bookings")"><i class="nav-icon fas fa-calendar-alt"></i><p>Quản lý đặt chỗ</p></a></li>
+                    <li class="nav-item"><a href="@Url.Action("Index", "Venues", new { area = "Admin" })" class="nav-link @act("venues")"><i class="nav-icon fas fa-building"></i><p>Quản lý địa điểm</p></a></li>
+                    @if (User.IsInRole(AppRoles.Admin))
+                    {
+                        <li class="nav-header">HỆ THỐNG</li>
+                        <li class="nav-item"><a href="@Url.Action("Index", "Users", new { area = "Admin" })" class="nav-link @act("users")"><i class="nav-icon fas fa-users"></i><p>Quản lý người dùng</p></a></li>
+                    }
+                </ul>
+            </nav>
+            <div class="sidebar-note"><i class="fas fa-seedling" aria-hidden="true"></i><strong>Mỗi sự kiện, một khởi đầu.</strong>Theo dõi yêu cầu, xác nhận cọc và chuẩn bị cho những sự kiện sắp tới.</div>
+        </div>
+    </aside>
+
+    
+    <div class="content-wrapper">
+        <section class="content-header">
+            <div class="container-fluid">
+                <div><div class="admin-eyebrow">EventHub / Quản lý sự kiện</div><h1>@ViewBag.Title</h1></div>
+                <div class="admin-header-date"><i class="far fa-calendar-alt mr-2" aria-hidden="true"></i>@DateTime.Now.ToString("dd / MM / yyyy")</div>
+            </div>
+        </section>
+        <section class="content">
+            <div class="container-fluid">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><i class="icon fas fa-check"></i> @TempData["Success"]</div>
+                }
+                @if (TempData["Warning"] != null)
+                {
+                    <div class="alert alert-warning alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><i class="icon fas fa-exclamation-triangle"></i> @TempData["Warning"]</div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><i class="icon fas fa-ban"></i> @TempData["Error"]</div>
+                }
+                @RenderBody()
+            </div>
+        </section>
+    </div>
+
+    <footer class="main-footer">
+        <strong>EventHub</strong> &copy; @DateTime.Now.Year - Hệ thống quản lý đặt địa điểm tổ chức sự kiện.
+    </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/js/adminlte.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/localization/messages_vi.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+@RenderSection("scripts", required: false)
+</body>
+</html>

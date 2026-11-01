@@ -1,0 +1,40 @@
+﻿@model List<Venue>
+@{ ViewBag.Title = "Không gian cho những dịp đáng nhớ"; }
+<section class="home-hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+        <span class="page-kicker">Tìm không gian, tạo kỷ niệm</span>
+        <h1 id="hero-title">Một không gian đẹp.<br />Vạn khoảnh khắc<br /><em>đáng nhớ.</em></h1>
+        <p>Chọn nơi bắt đầu câu chuyện của bạn. Khám phá địa điểm cho tiệc cưới, hội nghị và những buổi gặp gỡ đặc biệt.</p>
+        <div class="hero-actions"><a class="btn btn-primary" href="@Url.Action("Index", "Venues")">Khám phá địa điểm <i class="bi bi-arrow-up-right ms-2" aria-hidden="true"></i></a><a class="btn btn-outline-secondary" href="#how-it-works">Cách đặt chỗ</a></div>
+        <div class="hero-footnote"><span><i class="bi bi-calendar2-check" aria-hidden="true"></i> Xem lịch trống trước khi đặt</span><span><i class="bi bi-receipt" aria-hidden="true"></i> Chi phí rõ ràng</span></div>
+    </div>
+    <div class="hero-visual">
+        <img class="hero-photo" src="@Url.Content("~/Content/images/venues/sample-01.jpg")" alt="Không gian tiệc với bàn ăn được trang trí cho sự kiện" fetchpriority="high" />
+        <div class="hero-photo-caption"><i class="bi bi-stars" aria-hidden="true"></i><div><strong>Để mỗi dịp đều thật đặc biệt</strong><span>Không gian phù hợp cho sự kiện của bạn</span></div></div>
+    </div>
+</section>
+@using (Html.BeginForm("Index", "Venues", FormMethod.Get, new { @class = "hero-search", role = "search" }))
+{
+    <div><label for="home-search"><i class="bi bi-geo-alt me-1" aria-hidden="true"></i> Bạn muốn tổ chức ở đâu?</label><input id="home-search" type="search" name="search" class="form-control" placeholder="Tên địa điểm hoặc khu vực..." /></div>
+    <div><label for="home-capacity"><i class="bi bi-people me-1" aria-hidden="true"></i> Quy mô sự kiện</label><select id="home-capacity" name="capacity" class="form-select"><option value="">Tất cả sức chứa</option><option value="50">Từ 50 khách</option><option value="150">Từ 150 khách</option><option value="300">Từ 300 khách</option><option value="500">Từ 500 khách</option></select></div>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-search me-2" aria-hidden="true"></i> Tìm không gian</button>
+}
+<section aria-labelledby="featured-title">
+    <div class="section-heading"><div><span class="page-kicker">Một vài gợi ý dành cho bạn</span><h2 id="featured-title">Không gian nổi bật</h2><p>Những địa điểm để bạn lên ý tưởng cho sự kiện tiếp theo.</p></div><a href="@Url.Action("Index", "Venues")" class="section-link">Xem tất cả <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a></div>
+    @if (!Model.Any())
+    { <div class="catalog-empty"><i class="bi bi-building" aria-hidden="true"></i><h2>Không gian mới đang được chuẩn bị</h2><p>Hiện chưa có địa điểm đang hoạt động. Bạn hãy quay lại sau nhé.</p></div> }
+    else
+    {
+        <div class="row g-4">@foreach (var v in Model) { <div class="col-12 col-md-6 col-lg-4">@Html.Partial("_VenueCard", v)</div> }</div>
+    }
+</section>
+<div class="occasion-strip" aria-label="Các loại sự kiện"><span><i class="bi bi-heart" aria-hidden="true"></i> Tiệc cưới</span><span><i class="bi bi-mic" aria-hidden="true"></i> Hội nghị &amp; hội thảo</span><span><i class="bi bi-cup-hot" aria-hidden="true"></i> Gặp gỡ thân mật</span><span><i class="bi bi-briefcase" aria-hidden="true"></i> Sự kiện doanh nghiệp</span></div>
+<section id="how-it-works" class="steps-section" aria-labelledby="steps-title" style="scroll-margin-top:110px">
+    <div class="section-heading"><div><span class="page-kicker">Từ ý tưởng đến sự kiện</span><h2 id="steps-title">Đơn giản từ bước đầu tiên.</h2></div></div>
+    <div class="row g-4">
+        <div class="col-md-4"><div class="step-card"><span class="step-number">01.</span><h3>Tìm không gian phù hợp</h3><p>Khám phá địa điểm, so sánh giá và kiểm tra lịch trống theo ngày, giờ bạn dự định tổ chức.</p></div></div>
+        <div class="col-md-4"><div class="step-card"><span class="step-number">02.</span><h3>Gửi yêu cầu của bạn</h3><p>Chọn số khách, dịch vụ đi kèm và ghi chú. Nhân viên sẽ xem xét yêu cầu và gửi QR đặt cọc.</p></div></div>
+        <div class="col-md-4"><div class="step-card"><span class="step-number">03.</span><h3>Đặt cọc, nhận xác nhận</h3><p>Chuyển khoản theo QR. Khi nhân viên kiểm tra và xác nhận đã nhận đủ cọc, đơn được đặt thành công.</p></div></div>
+    </div>
+</section>
+<section class="home-cta"><div><h2>Sự kiện tiếp theo của bạn bắt đầu từ đây.</h2><p>Một địa điểm phù hợp sẽ làm nên sự khác biệt.</p></div><a class="btn btn-primary" href="@Url.Action("Index", "Venues")">Tìm địa điểm ngay <i class="bi bi-arrow-up-right ms-2" aria-hidden="true"></i></a></section>

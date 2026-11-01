@@ -1,0 +1,9 @@
+﻿@{
+    var confirmText = ViewData.ContainsKey("confirm") ? (string)ViewData["confirm"] : null;
+    var onsubmit = confirmText == null ? "" : "return confirm('" + confirmText + "');";
+}
+@using (Html.BeginForm("ChangeStatus", "Bookings", new { area = "Admin", id = ViewData["id"], status = ViewData["to"], returnUrl = ViewData["returnUrl"] }, FormMethod.Post, new { @class = "d-inline", onsubmit = onsubmit }))
+{
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-xs @ViewData["css"]">@ViewData["label"]</button>
+}

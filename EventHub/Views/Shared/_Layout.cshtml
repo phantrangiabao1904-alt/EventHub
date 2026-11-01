@@ -1,0 +1,147 @@
+﻿@{
+    var ctrl = ((string)ViewContext.RouteData.Values["controller"] ?? "").ToLower();
+    Func<string, string> act = c => ctrl == c ? "active" : "";
+    var action = ((string)ViewContext.RouteData.Values["action"] ?? "").ToLower();
+    var authPage = ctrl == "account" && new[] { "login", "register", "forgotpassword", "resetpassword", "verifyotp" }.Contains(action);
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewBag.Title - EventHub</title>
+    <meta name="theme-color" content="#245b49" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/site.css?v=20261030")" />
+</head>
+<body class="d-flex flex-column min-vh-100 page-@ctrl-@action">
+    <a class="visually-hidden-focusable position-absolute p-3 bg-white" style="z-index:1100" href="#main-content">Chuyển đến nội dung</a>
+    <nav class="navbar navbar-expand-lg site-header sticky-top" aria-label="Điều hướng chính">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="@Url.Action("Index", "Home", new { area = "" })"><span class="brand-symbol" aria-hidden="true"><i class="bi bi-grid-1x2"></i></span> EventHub<span style="color:#8caa65">.</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Mở menu">
+                <i class="bi bi-list" aria-hidden="true"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item"><a class="nav-link @act("home")" href="@Url.Action("Index", "Home", new { area = "" })">Trang chủ</a></li>
+                    <li class="nav-item"><a class="nav-link @act("venues")" href="@Url.Action("Index", "Venues", new { area = "" })">Địa điểm</a></li>
+                    @if (Request.IsAuthenticated && User.IsInRole(AppRoles.Client))
+                    {
+                        <li class="nav-item"><a class="nav-link @act("bookings")" href="@Url.Action("Index", "Bookings", new { area = "" })">Đặt chỗ của tôi</a></li>
+                    }
+                </ul>
+                <ul class="navbar-nav align-items-lg-center">
+                    @if (Request.IsAuthenticated)
+                    {
+                        if (User.IsStaff())
+                        {
+                            <li class="nav-item"><a class="nav-link" href="@Url.Action("Index", "Dashboard", new { area = "Admin" })"><i class="bi bi-speedometer2"></i> Trang quản trị</a></li>
+                        }
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle"></i> @User.GetFullName()
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><span class="dropdown-item-text text-muted small">
+                                    @(User.IsInRole(AppRoles.Admin) ? Vi.RoleName(Role.Admin) : (User.IsInRole(AppRoles.Coordinator) ? Vi.RoleName(Role.Coordinator) : Vi.RoleName(Role.Client)))
+                                </span></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Profile", "Account", new { area = "" })">Hồ sơ cá nhân</a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("ChangePassword", "Account", new { area = "" })">Đổi mật khẩu</a></li>
+                                <li>
+                                    @using (Html.BeginForm("Logout", "Account", new { area = "" }, FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
+                                    }
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item"><a class="nav-link" href="@Url.Action("Login", "Account", new { area = "" })">Đăng nhập</a></li>
+                        <li class="nav-item ms-lg-2"><a class="btn btn-primary btn-sm" href="@Url.Action("Register", "Account", new { area = "" })">Tạo tài khoản <i class="bi bi-arrow-up-right ms-1" aria-hidden="true"></i></a></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow-1 site-main" id="main-content">
+        <div class="container py-4">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button></div>
+            }
+            @if (TempData["Warning"] != null)
+            {
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">@TempData["Warning"]<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button></div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button></div>
+            }
+            @if (authPage)
+            {
+                <div class="auth-shell">
+                    <aside class="auth-story">
+                        <div class="auth-story-copy">
+                            <span class="page-kicker">Mỗi dịp đều đặc biệt</span>
+                            <h2>Không gian đẹp.<br />Khoảnh khắc đáng nhớ.</h2>
+                            <p>Từ buổi gặp gỡ thân mật đến những sự kiện quan trọng, tìm một không gian phù hợp cùng EventHub.</p>
+                            <div class="auth-story-bottom"><i class="bi bi-calendar2-heart" aria-hidden="true"></i> Chọn địa điểm · Gửi yêu cầu · Xác nhận cọc</div>
+                        </div>
+                    </aside>
+                    <div class="auth-form">@RenderBody()</div>
+                </div>
+            }
+            else
+            {
+                @RenderBody()
+            }
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-about"><a class="footer-brand" href="@Url.Action("Index", "Home", new { area = "" })">EventHub.</a><p>Kết nối bạn với không gian phù hợp, để mỗi sự kiện đều trở thành một kỷ niệm đẹp.</p></div>
+                <div class="footer-column"><h2>Khám phá</h2><a href="@Url.Action("Index", "Venues", new { area = "" })">Tất cả địa điểm</a><a href="@Url.Action("Index", "Home", new { area = "" })#how-it-works">Quy trình đặt chỗ</a></div>
+                <div class="footer-column"><h2>Tài khoản của bạn</h2>
+                @if (Request.IsAuthenticated)
+                { <a href="@Url.Action("Profile", "Account", new { area = "" })">Hồ sơ cá nhân</a><a href="@Url.Action("ChangePassword", "Account", new { area = "" })">Đổi mật khẩu</a> }
+                else
+                { <a href="@Url.Action("Login", "Account", new { area = "" })">Đăng nhập</a><a href="@Url.Action("Register", "Account", new { area = "" })">Tạo tài khoản</a> }
+                </div>
+            </div>
+            <div class="footer-bottom"><span>&copy; @DateTime.Now.Year EventHub. Không gian cho những dịp đáng nhớ.</span><span>Cưới hỏi &nbsp;·&nbsp; Hội nghị &nbsp;·&nbsp; Gặp gỡ &nbsp;·&nbsp; Tiệc công ty</span></div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/localization/messages_vi.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        document.querySelectorAll('[data-password-target]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var input = document.getElementById(button.dataset.passwordTarget);
+                if (!input) return;
+                var visible = input.type === 'password';
+                input.type = visible ? 'text' : 'password';
+                button.setAttribute('aria-pressed', String(visible));
+                button.setAttribute('aria-label', visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+                button.querySelector('i').className = visible ? 'bi bi-eye-slash' : 'bi bi-eye';
+            });
+        });
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

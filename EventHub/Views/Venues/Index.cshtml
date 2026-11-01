@@ -1,0 +1,21 @@
+﻿@model VenueListViewModel
+@{ ViewBag.Title = "Khám phá địa điểm"; }
+<div class="page-heading"><div><span class="page-kicker">Không gian dành cho bạn</span><h1>Tìm nơi cho dịp đặc biệt.</h1><p>Từ buổi tiệc thân mật đến sự kiện lớn, bắt đầu với một không gian phù hợp.</p></div><span class="small-label"><i class="bi bi-grid me-2" aria-hidden="true"></i> Bộ sưu tập địa điểm</span></div>
+@using (Html.BeginForm("Index", "Venues", FormMethod.Get, new { @class = "catalog-filter row g-3", role = "search" }))
+{
+    <div class="col-12 col-md-5"><label for="venue-search" class="form-label">ĐỊA ĐIỂM / KHU VỰC</label><input id="venue-search" type="search" name="search" value="@Model.Search" class="form-control" placeholder="Nhập tên hoặc địa chỉ..." /></div>
+    <div class="col-6 col-md-3"><label for="venue-capacity" class="form-label">SỨC CHỨA</label><select id="venue-capacity" name="capacity" class="form-select"><option value="">Mọi sức chứa</option>@foreach (var c in new[] { 50, 150, 300, 500 }) { <option value="@c" selected="@(Model.Capacity == c)">Từ @c khách trở lên</option> }</select></div>
+    <div class="col-6 col-md-4"><label for="venue-sort" class="form-label">SẮP XẾP</label><select id="venue-sort" name="sort" class="form-select"><option value="" selected="@(string.IsNullOrEmpty(Model.Sort))">Theo tên địa điểm</option><option value="price_asc" selected="@(Model.Sort == "price_asc")">Giá thấp đến cao</option><option value="price_desc" selected="@(Model.Sort == "price_desc")">Giá cao đến thấp</option><option value="capacity" selected="@(Model.Sort == "capacity")">Sức chứa lớn nhất</option></select></div>
+    <div class="col-12 col-md-5"><label for="eventDate" class="form-label">NGÀY TỔ CHỨC (TÙY CHỌN)</label><input id="eventDate" type="date" name="eventDate" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")" value="@(Model.EventDate.HasValue ? Model.EventDate.Value.ToString("yyyy-MM-dd") : "")" /></div>
+    <div class="col-6 col-md-2"><label for="startTime" class="form-label">TỪ GIỜ</label><input id="startTime" type="time" name="startTime" class="form-control" value="@(Model.StartTime.HasValue ? Model.StartTime.Value.ToString(@"hh\:mm") : "")" /></div>
+    <div class="col-6 col-md-2"><label for="endTime" class="form-label">ĐẾN GIỜ</label><input id="endTime" type="time" name="endTime" class="form-control" value="@(Model.EndTime.HasValue ? Model.EndTime.Value.ToString(@"hh\:mm") : "")" /></div>
+    <div class="col-12 col-md-3 d-flex align-items-end"><button type="submit" class="btn btn-primary w-100"><i class="bi bi-sliders2 me-2" aria-hidden="true"></i> Tìm địa điểm</button></div>
+    <div class="col-12 d-flex flex-wrap justify-content-between gap-2"><span class="small text-muted">Chọn đủ ngày, giờ bắt đầu và kết thúc để lọc lịch trống.</span><a href="@Url.Action("Index")" class="small"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Xóa bộ lọc</a></div>
+}
+@if (Model.AvailabilityError != null) { <div class="alert alert-danger" role="alert">@Model.AvailabilityError</div> }
+else if (Model.AvailabilityChecked) { <div class="alert alert-success"><i class="bi bi-calendar2-check me-2" aria-hidden="true"></i> Có @Model.Venues.Count địa điểm còn trống ngày @Model.EventDate.Value.ToString("dd/MM/yyyy"), @Vi.TimeRange(Model.StartTime.Value, Model.EndTime.Value). Lịch sẽ được kiểm tra lại khi gửi yêu cầu.</div> }
+<div class="catalog-results"><span><strong>@Model.Venues.Count</strong> địa điểm phù hợp</span><span><i class="bi bi-image me-1" aria-hidden="true"></i> Khám phá không gian của bạn</span></div>
+@if (!Model.Venues.Any())
+{ <div class="catalog-empty"><i class="bi bi-search" aria-hidden="true"></i><h2>Chưa tìm thấy không gian phù hợp</h2><p>Thử thay đổi khu vực, sức chứa hoặc khung giờ để có thêm lựa chọn.</p><a class="btn btn-outline-secondary" href="@Url.Action("Index")">Xem tất cả địa điểm</a></div> }
+else
+{ <div class="row g-4">@foreach (var v in Model.Venues) { <div class="col-12 col-md-6 col-lg-4">@Html.Partial("_VenueCard", v)</div> }</div> }

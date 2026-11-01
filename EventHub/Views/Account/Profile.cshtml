@@ -1,0 +1,19 @@
+@model ProfileViewModel
+@{ ViewBag.Title = "Hồ sơ cá nhân"; }
+<div class="row justify-content-center"><div class="col-md-7"><div class="card"><div class="card-body p-4">
+    <h1 class="h3">Hồ sơ cá nhân</h1>
+    <dl class="row mt-3">
+        <dt class="col-sm-4">Email đã xác thực</dt><dd class="col-sm-8">@Model.Email</dd>
+        <dt class="col-sm-4">Vai trò</dt><dd class="col-sm-8">@Model.RoleName</dd>
+        <dt class="col-sm-4">Ngày tham gia</dt><dd class="col-sm-8">@Model.CreatedAt.ToString("dd/MM/yyyy")</dd>
+    </dl>
+    @using (Html.BeginForm("Profile", "Account", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(false, null, new { @class = "text-danger" })
+        @Html.LabelFor(m => m.FullName, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.FullName, new { @class = "form-control mb-3", autocomplete = "name" })
+        <button class="btn btn-primary" type="submit">Lưu hồ sơ</button>
+        <a class="btn btn-outline-secondary" href="@Url.Action("ChangePassword")">Đổi mật khẩu</a>
+    }
+</div></div></div></div>

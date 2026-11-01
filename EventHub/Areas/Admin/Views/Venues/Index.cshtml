@@ -1,0 +1,47 @@
+﻿@model List<Venue>
+@{ ViewBag.Title = "Quản lý địa điểm"; }
+
+<div class="card">
+    <div class="card-header">
+        @using (Html.BeginForm("Index", "Venues", FormMethod.Get, new { @class = "form-inline d-inline-block" }))
+        {
+            <input type="text" name="search" value="@ViewBag.Search" class="form-control form-control-sm mr-2" placeholder="Tìm theo tên hoặc địa chỉ..." style="min-width:240px" />
+            @Html.DropDownList("status", Vi.VenueStatusOptions((string)ViewBag.Status), "Tất cả trạng thái", new { @class = "form-control form-control-sm mr-2" })
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Tìm</button>
+        }
+        <a href="@Url.Action("Create", "Venues")" class="btn btn-success btn-sm float-right"><i class="fas fa-plus"></i> Thêm địa điểm</a>
+    </div>
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover">
+            <thead><tr><th style="width:80px">Ảnh</th><th>Tên địa điểm</th><th>Địa chỉ</th><th class="text-right">Sức chứa</th><th class="text-right">Giá thuê</th><th>Trạng thái</th><th style="width:150px">Thao tác</th></tr></thead>
+            <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="7" class="text-center text-muted py-4">Không có địa điểm nào.</td></tr>
+            }
+            @foreach (var v in Model)
+            {
+                <tr>
+                    <td>
+                        @if (!string.IsNullOrEmpty(v.ImageUrl)) { <img src="@v.ImageUrl" class="venue-thumb" alt="" /> }
+                        else { <span class="venue-thumb-empty"><i class="fas fa-image"></i></span> }
+                    </td>
+                    <td class="font-weight-bold">@v.Name</td>
+                    <td>@v.Address</td>
+                    <td class="text-right">@v.Capacity khách</td>
+                    <td class="text-right">@Vi.Money(v.Price)</td>
+                    <td><span class="badge badge-@Vi.VenueColor(v.Status)">@Vi.VenueStatusName(v.Status)</span></td>
+                    <td>
+                        <a href="@Url.Action("Edit", "Venues", new { id = v.Id })" class="btn btn-info btn-xs"><i class="fas fa-pencil-alt"></i> Sửa</a>
+                        @using (Html.BeginForm("Delete", "Venues", new { id = v.Id }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Bạn có chắc muốn xóa địa điểm này?');" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger btn-xs"><i class="fas fa-trash"></i> Xóa</button>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

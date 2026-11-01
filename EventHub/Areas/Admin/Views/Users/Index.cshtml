@@ -1,0 +1,61 @@
+﻿@model UserListViewModel
+@{
+    ViewBag.Title = "Quản lý người dùng";
+    var me = ((AppPrincipal)User).UserId;
+}
+
+<div class="card">
+    <div class="card-header">
+        @using (Html.BeginForm("Index", "Users", FormMethod.Get, new { @class = "form-inline" }))
+        {
+            <input type="text" name="search" value="@Model.Search" class="form-control form-control-sm mr-2" placeholder="Tìm theo tên hoặc email..." style="min-width:240px" />
+            @Html.DropDownList("role", Vi.RoleOptions(Model.Role.HasValue ? Model.Role.Value.ToString() : ""), "Tất cả vai trò", new { @class = "form-control form-control-sm mr-2" })
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Tìm</button>
+        }
+    </div>
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover">
+            <thead><tr><th>#</th><th>Họ và tên</th><th>Email</th><th style="width:210px">Vai trò</th><th class="text-right">Số đơn</th><th>Ngày đăng ký</th><th style="width:90px">Thao tác</th></tr></thead>
+            <tbody>
+            @if (!Model.Items.Any())
+            {
+                <tr><td colspan="7" class="text-center text-muted py-4">Không có người dùng nào.</td></tr>
+            }
+            @foreach (var u in Model.Items)
+            {
+                <tr>
+                    <td>@u.Id</td>
+                    <td class="font-weight-bold">@u.FullName @if (u.Id == me) { <span class="badge badge-info">Bạn</span> }</td>
+                    <td>@u.Email</td>
+                    <td>
+                        @if (u.Id == me)
+                        {
+                            <span>@Vi.RoleName(u.Role)</span>
+                        }
+                        else
+                        {
+                            using (Html.BeginForm("SetRole", "Users", new { id = u.Id }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.DropDownList("role", Vi.RoleOptions(u.Role.ToString()), new { @class = "form-control form-control-sm", onchange = "this.form.submit()" })
+                            }
+                        }
+                    </td>
+                    <td class="text-right">@u.BookingCount</td>
+                    <td>@Vi.Date(u.CreatedAt)</td>
+                    <td>
+                        @if (u.Id != me)
+                        {
+                            using (Html.BeginForm("Delete", "Users", new { id = u.Id }, FormMethod.Post, new { onsubmit = "return confirm('Bạn có chắc muốn xóa người dùng này?');" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-xs"><i class="fas fa-trash"></i> Xóa</button>
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

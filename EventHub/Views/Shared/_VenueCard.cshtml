@@ -1,0 +1,17 @@
+﻿@model Venue
+@{ var detailsUrl = Url.Action("Details", "Venues", new { id = Model.Id, area = "", date = ViewContext.HttpContext.Request.QueryString["eventDate"], startTime = ViewContext.HttpContext.Request.QueryString["startTime"], endTime = ViewContext.HttpContext.Request.QueryString["endTime"] }); }
+<article class="card venue-card h-100">
+    <a class="venue-media" href="@detailsUrl" aria-label="Xem địa điểm @Model.Name">
+        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+        { <img src="@Model.ImageUrl" class="venue-img" alt="@Model.Name" loading="lazy" decoding="async" /> }
+        else
+        { <div class="venue-img venue-img-empty"><i class="bi bi-building" aria-hidden="true"></i></div> }
+        <span class="venue-capacity"><i class="bi bi-people me-1" aria-hidden="true"></i> Tối đa @Model.Capacity khách</span>
+    </a>
+    <div class="card-body d-flex flex-column">
+        <h3 class="card-title"><a href="@detailsUrl">@Model.Name</a></h3>
+        <p class="venue-address" title="@Model.Address"><i class="bi bi-geo-alt me-1" aria-hidden="true"></i> @Model.Address</p>
+        <p class="venue-desc text-muted flex-grow-1">@(string.IsNullOrEmpty(Model.Description) ? "Khám phá không gian và chọn ngày tổ chức phù hợp với bạn." : Model.Description)</p>
+        <div class="venue-card-bottom"><div><span class="venue-price">@Vi.Money(Model.Price)</span><span class="small-label">Giá thuê / sự kiện</span></div><a class="venue-arrow" href="@detailsUrl" aria-label="Xem chi tiết @Model.Name"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></a></div>
+    </div>
+</article>

@@ -1,0 +1,41 @@
+﻿@model LoginViewModel
+@{ ViewBag.Title = "Đăng nhập"; }
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <div class="text-uppercase text-warning fw-semibold small">Chào mừng trở lại</div>
+                    <h1 class="h3">Đăng nhập EventHub</h1>
+                </div>
+
+                @using (Html.BeginForm("Login", "Account", new { returnUrl = ViewBag.ReturnUrl }, FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, null, new { @class = "alert alert-danger" })
+
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.Email, new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email", placeholder = "vd: ten@email.com", autocomplete = "username", autofocus = "autofocus" })
+                        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                    </div>
+                    <div class="mb-3">
+                        @Html.LabelFor(m => m.Password, new { @class = "form-label" })
+                        <div class="password-field">@Html.PasswordFor(m => m.Password, new { @class = "form-control", autocomplete = "current-password" })<button type="button" class="password-toggle" data-password-target="Password" aria-label="Hiện mật khẩu" aria-pressed="false"><i class="bi bi-eye" aria-hidden="true"></i></button></div>
+                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small" })
+                    </div>
+                    <div class="form-check mb-3">
+                        @Html.CheckBoxFor(m => m.RememberMe, new { @class = "form-check-input" })
+                        @Html.LabelFor(m => m.RememberMe, new { @class = "form-check-label" })
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+                }
+                <div class="text-center mt-3 small text-muted">
+                    <p><a href="@Url.Action("ForgotPassword", "Account")">Quên mật khẩu?</a></p>
+                    Chưa có tài khoản? <a href="@Url.Action("Register", "Account")">Đăng ký ngay</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,39 @@
+@model BookingDetailsViewModel
+<h2 class="h5 mt-4">Chi phí và thanh toán</h2>
+<div class="table-responsive"><table class="table table-sm">
+    <thead><tr><th>Hạng mục</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>
+    <tr><td>Thuê địa điểm</td><td>1</td><td>@Vi.Money(Model.Booking.VenueRentalPrice ?? Model.Booking.TotalPrice)</td><td>@Vi.Money(Model.Booking.VenueRentalPrice ?? Model.Booking.TotalPrice)</td></tr>
+    @foreach (var service in Model.Services) { <tr><td>@service.Name</td><td>@service.Quantity</td><td>@Vi.Money(service.UnitPrice)</td><td>@Vi.Money(service.UnitPrice * service.Quantity)</td></tr> }
+    <tr><th colspan="3">Tổng giá trị đơn</th><th>@Vi.Money(Model.Booking.TotalPrice)</th></tr>
+    </tbody>
+</table></div>
+<div class="payment-summary row">
+    <div class="col-md-4"><div class="payment-metric"><span>Cọc yêu cầu</span><strong>@Vi.Money(Model.Deposit)</strong></div></div>
+    <div class="col-md-4"><div class="payment-metric"><span>Đã thu sau hoàn tiền</span><strong>@Vi.Money(Model.NetPaid)</strong></div></div>
+    <div class="col-md-4"><div class="payment-metric"><span>@(Model.Booking.Status == BookingStatus.Cancelled ? "Cần xử lý hoàn" : "Còn phải thu")</span><strong>@Vi.Money(Model.Booking.Status == BookingStatus.Cancelled ? Model.NetPaid : Model.Balance)</strong></div></div>
+</div>
+@if (Model.Booking.Status == BookingStatus.AwaitingDeposit && !string.IsNullOrEmpty(Model.Booking.DepositQrImageUrl))
+{
+    <section class="deposit-qr-panel border rounded p-3 mb-3">
+        <h3 class="h5">Yêu cầu đã được duyệt — Vui lòng chuyển tiền cọc</h3>
+        <p>Số tiền cọc: <strong>@Vi.Money(Model.Deposit)</strong> (@Model.Booking.DepositPercent%). Đã ghi nhận: @Vi.Money(Model.NetPaid). Còn thiếu cọc: <strong>@Vi.Money(Math.Max(0, Model.Deposit - Model.NetPaid))</strong>.</p>
+        <img src="@Url.Content(Model.Booking.DepositQrImageUrl)" alt="QR chuyển khoản tiền cọc" style="max-width:280px;width:100%;height:auto" />
+        <p class="mt-2">Nội dung chuyển khoản: <strong>EVENTHUB @Model.Booking.Id</strong></p>
+        <p class="mb-0">Sau khi chuyển khoản, chờ nhân viên kiểm tra và xác nhận đã nhận đủ cọc. <strong>Đơn chưa đặt thành công cho tới khi nhân viên xác nhận.</strong></p>
+    </section>
+}
+@if (Model.Booking.Status == BookingStatus.Cancelled)
+{
+    <p>Đơn đã hủy. Số tiền còn giữ cần xử lý hoàn: <strong>@Vi.Money(Model.NetPaid)</strong>.</p>
+}
+else
+{
+    <p>Còn phải thu: <strong>@Vi.Money(Model.Balance)</strong> · <strong>@(Model.Balance == 0 ? "Đã thanh toán đủ" : (Model.NetPaid >= Model.Deposit ? "Đã đủ cọc" : "Chưa đủ cọc"))</strong></p>
+}
+<p class="small text-muted">Thanh toán do nhân viên ghi nhận sau khi kiểm tra chứng từ. Website không tự chuyển tiền. Liên hệ EventHub để được hướng dẫn đặt cọc.</p>
+@if (Model.Payments.Count > 0)
+{
+    <div class="table-responsive"><table class="table table-sm"><thead><tr><th>Thời gian</th><th>Loại</th><th>Số tiền</th><th>Tham chiếu</th><th>Người ghi nhận</th></tr></thead><tbody>
+    @foreach (var payment in Model.Payments) { <tr><td>@payment.RecordedAt.ToString("dd/MM/yyyy HH:mm")</td><td>@(payment.Type == PaymentEntryType.Receipt ? "Thu tiền" : "Hoàn tiền")</td><td>@Vi.Money(payment.Amount)</td><td>@payment.Reference</td><td>@payment.RecordedBy</td></tr> }
+    </tbody></table></div>
+}

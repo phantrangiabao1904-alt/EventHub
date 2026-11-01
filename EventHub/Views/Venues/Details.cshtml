@@ -1,0 +1,103 @@
+﻿@model VenueDetailsViewModel
+@{ ViewBag.Title = Model.Venue.Name; var venue = Model.Venue; }
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Venues")">Địa điểm</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@venue.Name</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        @if (!string.IsNullOrEmpty(venue.ImageUrl))
+        {
+            <img src="@venue.ImageUrl" alt="@venue.Name" class="img-fluid rounded-3 w-100 venue-detail-photo" />
+        }
+        else
+        {
+            <div class="venue-img venue-img-empty rounded-3 detail-img"><i class="bi bi-building"></i></div>
+        }
+    </div>
+    <div class="col-lg-5 venue-detail-summary">
+        <span class="badge text-bg-@Vi.VenueColor(venue.Status) mb-2">@Vi.VenueStatusName(venue.Status)</span>
+        <h1 class="h2">@venue.Name</h1>
+        <p class="text-muted"><i class="bi bi-geo-alt"></i> @venue.Address</p>
+        <p>@(string.IsNullOrEmpty(venue.Description) ? "Chưa có mô tả cho địa điểm này." : venue.Description)</p>
+
+        <div class="row g-3 my-3">
+            <div class="col-6"><div class="border rounded-3 p-3 h-100"><div class="small text-muted">Sức chứa tối đa</div><strong class="fs-5">@venue.Capacity khách</strong></div></div>
+            <div class="col-6"><div class="border rounded-3 p-3 h-100"><div class="small text-muted">Giá thuê / sự kiện</div><strong class="fs-5 text-primary">@Vi.Money(venue.Price)</strong></div></div>
+        </div>
+
+        @if (Model.AvailabilityError != null)
+        {
+            <div class="alert alert-danger">@Model.AvailabilityError</div>
+        }
+        else if (Model.IsAvailable == false)
+        {
+            <div class="alert alert-warning">Khung giờ đã chọn không còn trống. Vui lòng xem lịch bên dưới và chọn giờ khác.</div>
+        }
+        else if (venue.Status != VenueStatus.Available)
+        {
+            <div class="alert alert-secondary mb-0">Địa điểm này đang bảo trì, tạm thời chưa nhận đặt chỗ.</div>
+        }
+        else if (!Request.IsAuthenticated)
+        {
+            <a class="btn btn-warning btn-lg w-100" href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("Create", "Bookings", new { venueId = venue.Id, eventDate = Model.Date.ToString("yyyy-MM-dd"), startTime = Model.StartTime, endTime = Model.EndTime }) })">Đăng nhập để đặt chỗ</a>
+        }
+        else if (User.IsInRole(AppRoles.Client))
+        {
+            <a class="btn btn-primary btn-lg w-100" href="@Url.Action("Create", "Bookings", new { venueId = venue.Id, eventDate = Model.Date.ToString("yyyy-MM-dd"), startTime = Model.StartTime, endTime = Model.EndTime })"><i class="bi bi-calendar-plus"></i> Đặt địa điểm này</a>
+        }
+        else
+        {
+            <a class="btn btn-outline-dark w-100" href="@Url.Action("Edit", "Venues", new { area = "Admin", id = venue.Id })"><i class="bi bi-pencil"></i> Chỉnh sửa trong trang quản trị</a>
+        }
+    </div>
+</div>
+
+<section class="card mt-4"><div class="card-body">
+    <h2 class="h4"><i class="bi bi-calendar3"></i> Lịch sử dụng địa điểm</h2>
+    @if (Model.IsAvailable == true) { <div class="alert alert-success">Địa điểm còn trống trong khung giờ @Vi.TimeRange(Model.StartTime.Value, Model.EndTime.Value).</div> }
+    @using (Html.BeginForm("Details", "Venues", new { id = Model.Venue.Id }, FormMethod.Get, new { @class = "d-flex flex-wrap gap-2 align-items-end my-3" }))
+    {
+        <div><label for="scheduleDate" class="form-label">Chọn ngày</label><input id="scheduleDate" name="date" type="date" class="form-control" value="@Model.Date.ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" required /></div>
+        <div><label for="detailStart" class="form-label">Từ giờ (tùy chọn)</label><input id="detailStart" name="startTime" type="time" class="form-control" value="@(Model.StartTime.HasValue ? Model.StartTime.Value.ToString(@"hh\:mm") : "")" /></div>
+        <div><label for="detailEnd" class="form-label">Đến giờ (tùy chọn)</label><input id="detailEnd" name="endTime" type="time" class="form-control" value="@(Model.EndTime.HasValue ? Model.EndTime.Value.ToString(@"hh\:mm") : "")" /></div>
+        <button class="btn btn-primary" type="submit">Xem lịch</button>
+    }
+    <p>Lịch ngày <strong>@Model.Date.ToString("dd/MM/yyyy")</strong>. Các đơn đang chờ xác nhận cũng giữ chỗ.</p>
+    <div class="row g-3">
+        <div class="col-md-6"><h3 class="h6">Khung giờ đã đặt</h3>
+            @if (Model.BookedSlots.Count == 0) { <p class="text-muted">Chưa có lịch đặt trong ngày này.</p> }
+            @foreach (var slot in Model.BookedSlots)
+            {
+                <div class="alert alert-secondary py-2">@Vi.TimeRange(slot.Start, slot.End) · Đã có lịch</div>
+            }
+        </div>
+        <div class="col-md-6"><h3 class="h6">Khung giờ còn trống</h3>
+            @if (Model.FreeSlots.Count == 0) { <p class="text-muted">Không có khung giờ khả dụng trong ngày này.</p> }
+            @foreach (var slot in Model.FreeSlots)
+            {
+                <div class="alert alert-success py-2">@slot.Start.ToString(@"hh\:mm") – @(slot.End == TimeSpan.FromDays(1) ? "24:00" : slot.End.ToString(@"hh\:mm"))</div>
+            }
+        </div>
+    </div>
+    <p class="small text-muted mb-0">Lịch có thể thay đổi và sẽ được kiểm tra lại khi gửi yêu cầu đặt chỗ. Thời gian phải kết thúc trong cùng ngày.</p>
+</div></section>
+
+<section class="card mt-4"><div class="card-body">
+    <h2 class="h4">Đánh giá từ khách đã sử dụng</h2>
+    @if (Model.ReviewCount == 0) { <p class="text-muted">Chưa có đánh giá. Khách hàng có thể đánh giá sau khi đơn hoàn thành.</p> }
+    else
+    {
+        <p><strong>@Model.AverageRating.Value.ToString("0.0") / 5 sao</strong> · @Model.ReviewCount đánh giá</p>
+        foreach (var review in Model.Reviews)
+        {
+            <article class="border-top py-3"><strong>@review.Rating / 5 sao</strong> <span class="text-muted small">· Khách đã sử dụng · @review.CreatedAt.ToString("dd/MM/yyyy")</span><p class="mb-0 mt-2">@review.Comment</p></article>
+        }
+        <p class="small text-muted mb-0">Hiển thị 20 đánh giá mới nhất.</p>
+    }
+</div></section>

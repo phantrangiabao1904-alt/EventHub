@@ -1,0 +1,15 @@
+@model ServiceOption
+@{ ViewBag.Title = Model.Id == 0 ? "Thêm dịch vụ" : "Sửa dịch vụ"; }
+<div class="card"><div class="card-body">
+@using (Html.BeginForm(Model.Id == 0 ? "Create" : "Edit", "Services", new { id = Model.Id }, FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(false, null, new { @class = "text-danger" })
+    <label for="Name">Tên dịch vụ</label>@Html.TextBoxFor(m => m.Name, new { @class = "form-control mb-3", maxlength = 150 })
+    <label for="Description">Mô tả</label>@Html.TextAreaFor(m => m.Description, new { @class = "form-control mb-3", maxlength = 500 })
+    <label for="UnitPrice">Đơn giá / đơn vị (VND)</label>@Html.TextBoxFor(m => m.UnitPrice, "{0:0}", new { @class = "form-control mb-3", type = "number", min = 0, max = 1000000000, step = 1 })
+    <label class="d-block">@Html.CheckBoxFor(m => m.IsActive) Đang cung cấp</label>
+    <button class="btn btn-primary" type="submit">Lưu dịch vụ</button>
+    <a class="btn btn-default" href="@Url.Action("Index")">Hủy</a>
+}
+</div></div>

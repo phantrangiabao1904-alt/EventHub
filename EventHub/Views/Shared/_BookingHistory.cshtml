@@ -1,0 +1,18 @@
+@model List<BookingStatusChange>
+<h2 class="h5 mt-4">Lịch sử trạng thái</h2>
+@if (Model.Count == 0)
+{
+    <p class="text-muted">Đơn được tạo trước khi hệ thống ghi lịch sử. Trạng thái hiện tại hiển thị ở trên.</p>
+}
+else
+{
+    <ol class="booking-timeline">
+        @foreach (var item in Model)
+        {
+            <li class="mb-3">
+                <strong>@(item.FromStatus.HasValue ? Vi.BookingStatusName(item.FromStatus.Value) + " → " : "Tạo đơn → ")@Vi.BookingStatusName(item.ToStatus)</strong>
+                <div class="small text-muted">@item.ChangedAt.ToString("dd/MM/yyyy HH:mm:ss") · @item.ActorName</div>
+            </li>
+        }
+    </ol>
+}

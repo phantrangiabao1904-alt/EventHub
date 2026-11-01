@@ -1,0 +1,31 @@
+@model BookingDetailsViewModel
+@{
+    string action = null;
+    string label = null;
+    decimal amount = 0;
+    if (Model.Booking.Status == BookingStatus.AwaitingDeposit)
+    {
+        action = "ConfirmDeposit"; label = "Xác nhận đã nhận cọc"; amount = Math.Max(0, Model.Deposit - Model.NetPaid);
+    }
+    else if ((Model.Booking.Status == BookingStatus.Confirmed || Model.Booking.Status == BookingStatus.Completed) && Model.Balance > 0)
+    {
+        action = "ConfirmBalance"; label = "Xác nhận đã nhận đủ tiền còn lại"; amount = Model.Balance;
+    }
+    else if (Model.Booking.Status == BookingStatus.Cancelled && Model.NetPaid > 0)
+    {
+        action = "ConfirmRefund"; label = "Xác nhận đã hoàn tiền"; amount = Model.NetPaid;
+    }
+}
+@if (action != null)
+{
+    <section class="my-3">
+        <p>Số tiền xác nhận: <strong>@Vi.Money(amount)</strong>.</p>
+        @using (Html.BeginForm(action, "Bookings", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Booking.Id" />
+            <input type="hidden" name="requestId" value="@Guid.NewGuid()" />
+            <button type="submit" class="btn btn-success">@label</button>
+        }
+    </section>
+}

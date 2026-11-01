@@ -1,0 +1,52 @@
+﻿@model Booking
+@{
+    ViewBag.Title = "Chi tiết đơn #" + Model.Id;
+    var returnUrl = Url.Action("Details", "Bookings", new { id = Model.Id });
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card" data-booking-status="@Model.Status">
+            <div class="card-header">
+                <h3 class="card-title">Thông tin đơn đặt chỗ</h3>
+                <div class="card-tools"><span class="badge badge-@Vi.BookingColor(Model.Status)">@Vi.BookingStatusName(Model.Status)</span></div>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Mã đơn</dt><dd class="col-sm-8">#@Model.Id</dd>
+                    <dt class="col-sm-4">Địa điểm</dt><dd class="col-sm-8">@Model.Venue.Name<br /><small class="text-muted">@Model.Venue.Address</small></dd>
+                    <dt class="col-sm-4">Khách hàng</dt><dd class="col-sm-8">@Model.User.FullName (@Model.User.Email)</dd>
+                    <dt class="col-sm-4">Ngày tổ chức</dt><dd class="col-sm-8">@Vi.Date(Model.EventDate)</dd>
+                    <dt class="col-sm-4">Thời gian</dt><dd class="col-sm-8">@Vi.TimeRange(Model.StartTime, Model.EndTime)</dd>
+                    <dt class="col-sm-4">Số khách</dt><dd class="col-sm-8">@Model.GuestCount / @Model.Venue.Capacity (sức chứa tối đa)</dd>
+                    <dt class="col-sm-4">Tổng chi phí</dt><dd class="col-sm-8">@Vi.Money(Model.TotalPrice)</dd>
+                    <dt class="col-sm-4">Ngày tạo đơn</dt><dd class="col-sm-8">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+                    <dt class="col-sm-4">Ghi chú</dt><dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.Notes) ? "Không có" : Model.Notes)</dd>
+                </dl>
+            </div>
+            <div class="card-footer">
+                @Html.Partial("~/Views/Shared/_BookingHistory.cshtml", (List<BookingStatusChange>)ViewBag.History)
+                @Html.Partial("~/Views/Shared/_BookingExtras.cshtml", (BookingDetailsViewModel)ViewBag.Extras)
+                @if (Model.Status == BookingStatus.Pending || Model.Status == BookingStatus.AwaitingDeposit)
+                {
+                    @Html.Partial("_DepositRequest", (DepositRequestViewModel)ViewBag.DepositRequest)
+                }
+                @Html.Partial("_QuickPayment", (BookingDetailsViewModel)ViewBag.Extras)
+                <a href="@Url.Action("Index", "Bookings")" class="btn btn-default btn-sm">&larr; Quay lại danh sách</a>
+                @if (Model.Status == BookingStatus.Pending)
+                {
+                    @Html.Partial("_StatusButton", new ViewDataDictionary { { "id", Model.Id }, { "to", "Cancelled" }, { "label", "Hủy đơn" }, { "css", "btn-danger btn-sm" }, { "returnUrl", returnUrl }, { "confirm", "Hủy đơn này?" } })
+                }
+                else if (Model.Status == BookingStatus.AwaitingDeposit)
+                {
+                    @Html.Partial("_StatusButton", new ViewDataDictionary { { "id", Model.Id }, { "to", "Cancelled" }, { "label", "Hủy đơn" }, { "css", "btn-danger btn-sm" }, { "returnUrl", returnUrl }, { "confirm", "Hủy đơn này?" } })
+                }
+                else if (Model.Status == BookingStatus.Confirmed)
+                {
+                    @Html.Partial("_StatusButton", new ViewDataDictionary { { "id", Model.Id }, { "to", "Completed" }, { "label", "Đánh dấu hoàn thành" }, { "css", "btn-primary btn-sm" }, { "returnUrl", returnUrl } })
+                    @Html.Partial("_StatusButton", new ViewDataDictionary { { "id", Model.Id }, { "to", "Cancelled" }, { "label", "Hủy đơn" }, { "css", "btn-danger btn-sm" }, { "returnUrl", returnUrl }, { "confirm", "Hủy đơn này?" } })
+                }
+            </div>
+        </div>
+    </div>
+</div>

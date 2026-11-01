@@ -1,0 +1,59 @@
+﻿@model List<Booking>
+@{ ViewBag.Title = "Đặt chỗ của tôi"; }
+
+<div class="page-heading"><div>
+    <div class="page-kicker">Tài khoản của tôi</div>
+    <h1 class="h2">Đặt chỗ của tôi</h1>
+    <p class="text-muted">Theo dõi các yêu cầu đặt địa điểm và trạng thái xử lý.</p>
+</div><a class="btn btn-outline-secondary" href="@Url.Action("Index", "Venues")">Đặt thêm địa điểm <i class="bi bi-arrow-up-right ms-1" aria-hidden="true"></i></a></div>
+
+@if (!Model.Any())
+{
+    <div class="card"><div class="card-body text-center py-5">
+        <p class="text-muted">Bạn chưa có đơn đặt chỗ nào.</p>
+        <a class="btn btn-primary" href="@Url.Action("Index", "Venues")">Tìm địa điểm</a>
+    </div></div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã</th><th>Địa điểm</th><th>Ngày</th><th>Giờ</th><th class="text-end">Số khách</th><th class="text-end">Tổng chi phí</th><th>Trạng thái</th><th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model)
+                    {
+                        <tr>
+                            <td>#@b.Id</td>
+                            <td class="fw-semibold"><a class="text-decoration-none" href="@Url.Action("Details", "Venues", new { id = b.VenueId })">@b.Venue.Name</a></td>
+                            <td>@Vi.Date(b.EventDate)</td>
+                            <td>@Vi.TimeRange(b.StartTime, b.EndTime)</td>
+                            <td class="text-end">@b.GuestCount</td>
+                            <td class="text-end">@Vi.Money(b.TotalPrice)</td>
+                            <td><span class="badge text-bg-@Vi.BookingColor(b.Status)">@Vi.BookingStatusName(b.Status)</span></td>
+                            <td class="text-end">
+                                <a class="btn btn-outline-primary btn-sm" href="@Url.Action("Details", new { id = b.Id })">Chi tiết / In</a>
+                                @if ((b.Status == BookingStatus.Pending || b.Status == BookingStatus.AwaitingDeposit || b.Status == BookingStatus.Confirmed) && b.StartsAt() > DateTime.Now)
+                                {
+                                    using (Html.BeginForm("Cancel", "Bookings", new { id = b.Id }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Bạn có chắc muốn hủy đơn đặt chỗ này?');" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Hủy đơn</button>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                        if (!string.IsNullOrWhiteSpace(b.Notes))
+                        {
+                            <tr class="table-light"><td></td><td colspan="7" class="small text-muted"><i class="bi bi-chat-left-text"></i> @b.Notes</td></tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

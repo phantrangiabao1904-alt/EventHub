@@ -1,0 +1,64 @@
+@model BookingDetailsViewModel
+@{ var booking = Model.Booking; ViewBag.Title = "Chi tiết đơn #" + booking.Id; }
+<style>
+@@media print {
+    nav, footer, .no-print, .alert-dismissible { display: none !important; }
+    body { background: white !important; font-size: 12pt; }
+    .container { max-width: 100% !important; }
+    .card { border: 0 !important; box-shadow: none !important; }
+    a { color: black !important; text-decoration: none !important; }
+}
+</style>
+<div class="d-flex flex-wrap gap-2 mb-3 no-print">
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Quay lại danh sách</a>
+    <button type="button" class="btn btn-primary" onclick="window.print()">In / Lưu PDF</button>
+</div>
+<article class="card shadow-sm" data-booking-status="@booking.Status" data-required-deposit="@Model.Deposit.ToString(System.Globalization.CultureInfo.InvariantCulture)"><div class="card-body p-4">
+    <p class="text-uppercase text-muted">EventHub · Phiếu thông tin đặt địa điểm</p>
+    <h1 class="h3">Đơn đặt chỗ #@booking.Id</h1>
+    <p><span class="badge text-bg-@Vi.BookingColor(booking.Status)">@Vi.BookingStatusName(booking.Status)</span></p>
+    @if (booking.Status == BookingStatus.Pending) { <p>Yêu cầu đang chờ xác nhận; đây chưa phải phiếu xác nhận đặt chỗ.</p> }
+    else if (booking.Status == BookingStatus.AwaitingDeposit) { <p>Yêu cầu đã được duyệt, đang chờ nhân viên xác nhận nhận đủ cọc. Đơn chưa đặt thành công.</p> }
+    else if (booking.Status == BookingStatus.Cancelled) { <p>Đơn đã hủy. Phiếu này không có hiệu lực đặt chỗ.</p> }
+    <dl class="row mt-4">
+        <dt class="col-sm-4">Khách hàng</dt><dd class="col-sm-8">@booking.User.FullName</dd>
+        <dt class="col-sm-4">Email</dt><dd class="col-sm-8">@booking.User.Email</dd>
+        <dt class="col-sm-4">Địa điểm</dt><dd class="col-sm-8">@booking.Venue.Name</dd>
+        <dt class="col-sm-4">Địa chỉ</dt><dd class="col-sm-8">@booking.Venue.Address</dd>
+        <dt class="col-sm-4">Ngày tổ chức</dt><dd class="col-sm-8">@Vi.Date(booking.EventDate)</dd>
+        <dt class="col-sm-4">Thời gian</dt><dd class="col-sm-8">@Vi.TimeRange(booking.StartTime, booking.EndTime)</dd>
+        <dt class="col-sm-4">Số khách</dt><dd class="col-sm-8">@booking.GuestCount</dd>
+        <dt class="col-sm-4">Tổng chi phí lúc đặt</dt><dd class="col-sm-8">@Vi.Money(booking.TotalPrice)</dd>
+        <dt class="col-sm-4">Ngày tạo</dt><dd class="col-sm-8">@booking.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+        <dt class="col-sm-4">Ghi chú</dt><dd class="col-sm-8">@(booking.Notes ?? "Không có")</dd>
+    </dl>
+    <p class="small text-muted">Phiếu thông tin không phải hóa đơn hay chứng từ thanh toán.</p>
+    @Html.Partial("_BookingHistory", Model.History)
+    @Html.Partial("_BookingExtras", Model)
+    @if (Model.Review != null)
+    {
+        <section class="mt-4"><h2 class="h5">Đánh giá của bạn</h2><p>@Model.Review.Rating / 5 sao</p><p>@Model.Review.Comment</p></section>
+    }
+    else if (booking.Status == BookingStatus.Completed)
+    {
+        <section class="no-print mt-4"><h2 class="h5">Đánh giá địa điểm</h2>
+        @using (Html.BeginForm("Review", "Bookings", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="BookingId" value="@booking.Id" />
+            <label for="rating" class="form-label">Số sao</label><select name="Rating" id="rating" class="form-select mb-3" required><option value="">Chọn số sao</option>@for (var i = 5; i >= 1; i--) { <option value="@i">@i sao</option> }</select>
+            <label for="reviewComment" class="form-label">Nhận xét (tối đa 1000 ký tự)</label><textarea name="Comment" id="reviewComment" maxlength="1000" class="form-control mb-3"></textarea>
+            <p class="small text-muted">Nhận xét sẽ hiển thị công khai trên trang địa điểm. Mỗi đơn được đánh giá một lần.</p>
+            <button class="btn btn-primary" type="submit">Gửi đánh giá</button>
+        }
+        </section>
+    }
+    @if ((booking.Status == BookingStatus.Pending || booking.Status == BookingStatus.AwaitingDeposit || booking.Status == BookingStatus.Confirmed) && booking.StartsAt() > DateTime.Now)
+    {
+        using (Html.BeginForm("Cancel", "Bookings", new { id = booking.Id }, FormMethod.Post, new { @class = "no-print mt-3", onsubmit = "return confirm('Bạn chắc chắn muốn hủy đơn này?');" }))
+        {
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-danger">Hủy đơn</button>
+        }
+    }
+</div></article>

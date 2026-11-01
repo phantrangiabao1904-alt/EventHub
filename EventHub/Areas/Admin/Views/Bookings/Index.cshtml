@@ -1,0 +1,70 @@
+﻿@model BookingFilterViewModel
+@{
+    ViewBag.Title = "Quản lý đặt chỗ";
+    var returnUrl = Request.Url.PathAndQuery;
+}
+
+<div class="card">
+    <div class="card-header">
+        @using (Html.BeginForm("Index", "Bookings", FormMethod.Get, new { @class = "form-inline" }))
+        {
+            <input type="text" name="search" value="@Model.Search" class="form-control form-control-sm mr-2 mb-1" placeholder="Mã đơn, địa điểm, khách hàng..." style="min-width:240px" />
+            @Html.DropDownList("status", Vi.BookingStatusOptions(Model.Status.HasValue ? Model.Status.Value.ToString() : ""), "Tất cả trạng thái", new { @class = "form-control form-control-sm mr-2 mb-1" })
+            <label class="mr-1 mb-1 small">Từ</label>
+            <input type="date" name="from" value="@(Model.From.HasValue ? Model.From.Value.ToString("yyyy-MM-dd") : "")" class="form-control form-control-sm mr-2 mb-1" />
+            <label class="mr-1 mb-1 small">đến</label>
+            <input type="date" name="to" value="@(Model.To.HasValue ? Model.To.Value.ToString("yyyy-MM-dd") : "")" class="form-control form-control-sm mr-2 mb-1" />
+            <button type="submit" class="btn btn-primary btn-sm mr-1 mb-1"><i class="fas fa-search"></i> Lọc</button>
+            <a href="@Url.Action("Index", "Bookings")" class="btn btn-default btn-sm mb-1">Xóa lọc</a>
+        }
+    </div>
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Mã</th><th>Địa điểm</th><th>Khách hàng</th><th>Ngày &amp; giờ</th>
+                    <th class="text-right">Số khách</th><th class="text-right">Giá thuê</th><th>Trạng thái</th><th style="width:230px">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (!Model.Items.Any())
+            {
+                <tr><td colspan="8" class="text-center text-muted py-4">Không có đơn đặt chỗ nào.</td></tr>
+            }
+            @foreach (var b in Model.Items)
+            {
+                <tr>
+                    <td><a href="@Url.Action("Details", "Bookings", new { id = b.Id })">#@b.Id</a></td>
+                    <td class="font-weight-bold">@b.Venue.Name</td>
+                    <td>@b.User.FullName<br /><small class="text-muted">@b.User.Email</small></td>
+                    <td>@Vi.Date(b.EventDate)<br /><small class="text-muted">@Vi.TimeRange(b.StartTime, b.EndTime)</small></td>
+                    <td class="text-right">@b.GuestCount</td>
+                    <td class="text-right">@Vi.Money(b.TotalPrice)</td>
+                    <td><span class="badge badge-@Vi.BookingColor(b.Status)">@Vi.BookingStatusName(b.Status)</span></td>
+                    <td>
+                        @if (b.Status == BookingStatus.Pending)
+                        {
+                            <a class="btn btn-info btn-xs" href="@Url.Action("Details", new { id = b.Id })">Duyệt và gửi QR cọc</a>
+                            @Html.Partial("_StatusButton", new ViewDataDictionary { { "id", b.Id }, { "to", "Cancelled" }, { "label", "Hủy đơn" }, { "css", "btn-danger" }, { "returnUrl", returnUrl }, { "confirm", "Hủy đơn #" + b.Id + "?" } })
+                        }
+                        else if (b.Status == BookingStatus.Confirmed)
+                        {
+                            @Html.Partial("_StatusButton", new ViewDataDictionary { { "id", b.Id }, { "to", "Completed" }, { "label", "Hoàn thành" }, { "css", "btn-primary" }, { "returnUrl", returnUrl } })
+                            @Html.Partial("_StatusButton", new ViewDataDictionary { { "id", b.Id }, { "to", "Cancelled" }, { "label", "Hủy đơn" }, { "css", "btn-danger" }, { "returnUrl", returnUrl }, { "confirm", "Hủy đơn #" + b.Id + "?" } })
+                        }
+                        else if (b.Status == BookingStatus.AwaitingDeposit)
+                        {
+                            <a class="btn btn-info btn-xs" href="@Url.Action("Details", new { id = b.Id })">Kiểm tra / Xác nhận nhận cọc</a>
+                            @Html.Partial("_StatusButton", new ViewDataDictionary { { "id", b.Id }, { "to", "Cancelled" }, { "label", "Hủy đơn" }, { "css", "btn-danger" }, { "returnUrl", returnUrl }, { "confirm", "Hủy đơn #" + b.Id + "?" } })
+                        }
+                        else
+                        {
+                            <span class="text-muted small">Đã kết thúc</span>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
